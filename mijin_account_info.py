@@ -5,7 +5,7 @@ import requests
 
 def get_account_info(config):
     url = 'http://' + config['ip'] + ':' + config['port'] + '/account/get'
-    params = {'address': config['account'][0]['address']}
+    params = {'address': config['account']['address']}
     response = requests.get(url, params=params)
     return response.text
 
