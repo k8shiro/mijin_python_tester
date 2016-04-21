@@ -74,12 +74,7 @@ def get_timestamp(hours):
     current_datetime = datetime.datetime.utcnow()
     timestamp = int((current_datetime - nem_epoch).total_seconds())
     timestamp += hours * 60 * 60
-    timestamp_hex = int_to_byte(timestamp, 4)
-    print(timestamp_hex)
-    print(timestamp.to_bytes(4, byteorder='little'))
-
-
-
+    timestamp_hex = hexlify(timestamp.to_bytes(4, byteorder='little')).decode('utf-8')
     return timestamp_hex
 
 
@@ -98,7 +93,9 @@ def get_fee(xem):
     return fee_hex
 
 def get_recipient_length():
-    return int_to_byte(40, 4)
+    #return int_to_byte(40, 4)
+    l = 40
+    return hexlify(l.to_bytes(4, byteorder='little')).decode('utf-8')
 
 
 
