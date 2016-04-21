@@ -1,1 +1,1 @@
-# mijin_python_testerpip install requests
+# mijin_python_testerpip install requestspip install pysha3
