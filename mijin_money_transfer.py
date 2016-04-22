@@ -128,6 +128,7 @@ def get_public_key_length():
     return hexlify(l.to_bytes(4, byteorder='little')).decode('utf-8')
 
 def serialize_data(sender, receiver_address, last_block):
+    # 共通部分
     serialize = ''
     serialize += get_type(257)
     serialize += get_version(last_block['version'])
@@ -153,6 +154,16 @@ def make_signature(data, pk, sk):
     return hexlify(signature).decode('utf-8')
 
 
+def post_transaction_announce(config, serialize, signature):
+    data = {'data': serialize,
+            'signature': signature
+            }
+
+    headers = {'Content-type': 'application/json'}
+    url = 'http://' + config['ip'] + ':' + config['port'] + '/transaction/announce'
+    ret = requests.post(url, data=json.dumps(data), headers=headers, timeout=10)
+    return ret
+
 if __name__ == '__main__':
     args = get_args()
     sender_file_name = args[1]
@@ -160,24 +171,10 @@ if __name__ == '__main__':
     sender = get_sender(sender_file_name)
     config = get_config()
     last_block = get_last_block(config)
-    print(last_block)
-    print(last_block['timeStamp'])
-    print(last_block['version'])
 
-    # 共通部分
     serialize = serialize_data(sender, receiver_address, last_block)
-
-
 
     signature = make_signature(serialize, sender['publicKey'], sender['privateKey'])
 
-    data = {'data': serialize,
-            'signature': signature
-            }
-
-    #POST
-    config = get_config()
-    headers = {'Content-type': 'application/json'}
-    url = 'http://' + config['ip'] + ':' + config['port'] + '/transaction/announce'
-    ret = requests.post(url, data=json.dumps(data), headers=headers, timeout=10)
+    ret = post_transaction_announce(config, serialize, signature)
     print(ret.text)
