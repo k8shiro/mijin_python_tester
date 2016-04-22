@@ -36,6 +36,13 @@ def get_sender(sender_file_name):
     return sender
 
 
+def get_last_block(config):
+    url = 'http://' + config['ip'] + ':' + config['port'] + '/chain/last-block'
+    response = requests.get(url)
+    return response.json()
+
+
+
 def str_to_byte(data, num):
     result = ''
     for data_i in data:
@@ -47,16 +54,18 @@ def str_to_byte(data, num):
     return result
 
 
-def get_timestamp(hours):
+def get_timestamp(hours, timestamp):
     u"""
+    自分で計算する場合は
     NEM標準時?からタイムスタンプを生成
     hoursに現時刻からずらしたい時間を入れる
     """
-    nem_epoch = datetime.datetime(2015, 3, 29, 0, 6, 25, 0, None)
-    current_datetime = datetime.datetime.utcnow()
-    timestamp = int((current_datetime - nem_epoch).total_seconds())
-    timestamp += hours * 60 * 60
-    timestamp_hex = hexlify(timestamp.to_bytes(4, byteorder='little')).decode('utf-8')
+    #nem_epoch = datetime.datetime(2015, 3, 29, 0, 6, 25, 0, None)
+    #urrent_datetime = datetime.datetime.utcnow()
+    #timestamp = int((current_datetime - nem_epoch).total_seconds())
+    t = timestamp
+    t += hours * 60 * 60
+    timestamp_hex = hexlify(t.to_bytes(4, byteorder='little')).decode('utf-8')
     return timestamp_hex
 
 
@@ -118,15 +127,15 @@ def get_public_key_length():
     l = 32
     return hexlify(l.to_bytes(4, byteorder='little')).decode('utf-8')
 
-def serialize_data(sender, receiver_address):
+def serialize_data(sender, receiver_address, last_block):
     serialize = ''
     serialize += get_type(257)
-    serialize += get_version(1610612737)
-    serialize += get_timestamp(0)
+    serialize += get_version(last_block['version'])
+    serialize += get_timestamp(0, last_block['timeStamp'])
     serialize += get_public_key_length()
     serialize += get_signer(sender['publicKey'])
     serialize += get_amount(2000000)
-    serialize += get_timestamp(1)
+    serialize += get_timestamp(1, last_block['timeStamp'])
 
     # v1
     serialize += get_recipient_length()
@@ -149,9 +158,14 @@ if __name__ == '__main__':
     sender_file_name = args[1]
     receiver_address = args[2]
     sender = get_sender(sender_file_name)
+    config = get_config()
+    last_block = get_last_block(config)
+    print(last_block)
+    print(last_block['timeStamp'])
+    print(last_block['version'])
 
     # 共通部分
-    serialize = serialize_data(sender, receiver_address)
+    serialize = serialize_data(sender, receiver_address, last_block)
 
 
 
