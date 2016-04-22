@@ -36,24 +36,6 @@ def get_sender(sender_file_name):
     return sender
 
 
-def int_to_byte(data, num):
-    result = hex(data).replace('0x', '')
-
-    if len(result)%2 == 1:
-        result = '0' + result
-
-    flip = ''
-    for fst, scd in zip(result[::2], result[1::2]):
-        flip = fst + scd + flip
-    result = flip
-
-    for var in range(num*2 - len(result)):
-        result += '0'
-
-    return result
-
-
-
 def str_to_byte(data, num):
     result = ''
     for data_i in data:
@@ -79,21 +61,12 @@ def get_timestamp(hours):
 
 
 def get_amount(xem):
-    amount_hex = int_to_byte(xem, 8)
+    amount_hex = hexlify(xem.to_bytes(8, byteorder='little')).decode('utf-8')
     return amount_hex
 
 
-def get_fee(xem):
-    if xem < 8:
-        fee = 10 - xem
-    else:
-        fee = max(2, 99 * atan(xem / 150000))
-
-    fee_hex = int_to_byte(int(fee) * 1000000, 8)
-    return fee_hex
 
 def get_recipient_length():
-    #return int_to_byte(40, 4)
     l = 40
     return hexlify(l.to_bytes(4, byteorder='little')).decode('utf-8')
 
@@ -116,9 +89,9 @@ def get_message(type, payload):
         return '00000000'
     type_hex = get_type(type)
     payload_hex = str_to_byte(payload, len(payload))
-    payload_length_hex = int_to_byte(len(payload), 4)
+    payload_length_hex = hexlify(len(payload).to_bytes(4, byteorder='little')).decode('utf-8')
     message_hex = type_hex + payload_length_hex + payload_hex
-    message_length_hex = int_to_byte(len(message_hex)//2, 4)
+    message_length_hex = hexlify((len(message_hex)//2).to_bytes(4, byteorder='little')).decode('utf-8')
     return message_length_hex + message_hex
 
 
@@ -142,7 +115,8 @@ def get_signer(public_key):
 
 
 def get_public_key_length():
-    return int_to_byte(32, 4)
+    l = 32
+    return hexlify(l.to_bytes(4, byteorder='little')).decode('utf-8')
 
 def serialize_data(sender, receiver_address):
     serialize = ''
